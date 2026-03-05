@@ -6,6 +6,7 @@ import sys
 import os
 import importlib.util
 from pathlib import Path
+from flask import Flask
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -131,7 +132,6 @@ def test_root_entrypoint():
     assert spec and spec.loader, "No se pudo cargar el entrypoint raíz"
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    from flask import Flask
     assert isinstance(module.app, Flask), "El entrypoint raíz no expone una app Flask"
     print("✅ Entrypoint raíz carga app Flask correctamente")
 

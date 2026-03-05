@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 from pathlib import Path
 import sys
 
@@ -24,4 +23,6 @@ app = module.app
 create_app = module.create_app
 
 if __name__ == "__main__":
+    import os
+
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=True)
