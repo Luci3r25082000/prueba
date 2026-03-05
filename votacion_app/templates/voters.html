@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h3 mb-1">🗳️ Registro Individual de Votantes</h1>
+  <div class="text-muted mb-3">Cada cédula solo puede registrarse una única vez. La operación es irreversible.</div>
+
+  {% if not lideres_activos %}
+    <div class="alert alert-warning">⚠️ No hay líderes activos. Crea un líder o carga un archivo primero.</div>
+  {% else %}
+  <div class="row g-3">
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">📝 Formulario de registro</h2>
+          <form method="post" class="row g-2">
+            <div class="col-12">
+              <label class="form-label">Número de cédula</label>
+              <input class="form-control" name="cedula" maxlength="20" placeholder="Ej: 1090123456" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Nombre completo</label>
+              <input class="form-control" name="nombre" maxlength="200" placeholder="Ej: María López García" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Asignar a líder</label>
+              <select class="form-select" name="lider_id">
+                {% for l in lideres_activos %}
+                  <option value="{{ l.id }}">{{ l.nombre }} ({{ l.total_votantes|fmt }} votos)</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="confirm" name="confirm" />
+                <label class="form-check-label" for="confirm">Confirmo que los datos son correctos. Esta acción es irreversible.</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary w-100" type="submit">🗳️ Registrar Votante</button>
+            </div>
+          </form>
+
+          {% if resultado %}
+            <hr />
+            <div class="alert alert-success">✅ {{ resultado.nombre }} registrado exitosamente</div>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <tbody>
+                  <tr><th>🪪 Cédula</th><td>{{ resultado.cedula }}</td></tr>
+                  <tr><th>🏅 Líder</th><td>{{ resultado.lider }}</td></tr>
+                  <tr><th>📊 Total líder</th><td><strong>{{ resultado.total_lider|fmt }}</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">🕐 Últimos 10 registros</h2>
+          {% if not recientes %}
+            <div class="text-muted">Sin registros aún.</div>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead><tr><th>Fecha</th><th>Cédula</th><th>Nombre</th><th>Líder</th></tr></thead>
+                <tbody>
+                  {% for r in recientes %}
+                    <tr>
+                      <td class="text-muted small">{{ r.fecha }}</td>
+                      <td>{{ r.cedula }}</td>
+                      <td>{{ r.nombre }}</td>
+                      <td>{{ r.lider }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}

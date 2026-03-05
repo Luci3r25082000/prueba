@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h3 mb-1">📋 Censo Electoral</h1>
+  <div class="text-muted mb-3">Carga el padrón electoral. Las cédulas entran como DISPONIBLES y se inhabilitan al registrar cada votante.</div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="metric-card" style="background:var(--blue)"><div class="value">{{ sc.total_padron|fmt }}</div><div class="label">Total padrón</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric-card" style="background:var(--green)"><div class="value">{{ sc.disponibles|fmt }}</div><div class="label">Disponibles</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric-card" style="background:var(--red)"><div class="value">{{ sc.inhabilitadas|fmt }}</div><div class="label">Ya votaron</div></div></div>
+    <div class="col-6 col-lg-3"><div class="metric-card" style="background:var(--brown)"><div class="value">{{ sc.cobertura_pct }}%</div><div class="label">Cobertura</div></div></div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-7">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h2 class="h5">⬆️ Cargar padrón</h2>
+          <div class="alert alert-info">Solo carga cédulas como DISPONIBLES. No registra votantes ni modifica líderes.</div>
+          <form method="post" enctype="multipart/form-data" class="row g-2">
+            <input type="hidden" name="action" value="upload" />
+            <div class="col-12">
+              <input class="form-control" type="file" name="archivo" accept=".csv,.xlsx,.xls" required />
+            </div>
+            <div class="col-6 col-lg-3">
+              <label class="form-label">Separador CSV</label>
+              <select class="form-select" name="sep">
+                <option value=",">Coma (,)</option>
+                <option value=";">Punto y coma (;)</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="confirm" name="confirm" />
+                <label class="form-check-label" for="confirm">Confirmo que deseo cargar este padrón electoral.</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary" type="submit">📋 Procesar padrón</button>
+            </div>
+          </form>
+
+          {% if resumen %}
+            <hr />
+            <div class="small text-muted mb-2">Formato: {{ resumen.formato }} · Columna: {{ resumen.col }}</div>
+            <div class="row g-2">
+              <div class="col-6 col-lg-3"><div class="p-2 bg-white rounded border"><div class="text-muted small">Total archivo</div><div class="fw-bold">{{ resumen.total|fmt }}</div></div></div>
+              {% if resumen.nuevas is defined %}
+                <div class="col-6 col-lg-3"><div class="p-2 bg-white rounded border"><div class="text-muted small">✅ Nuevas</div><div class="fw-bold">{{ resumen.nuevas|fmt }}</div></div></div>
+                <div class="col-6 col-lg-3"><div class="p-2 bg-white rounded border"><div class="text-muted small">ℹ️ Ya disp.</div><div class="fw-bold">{{ resumen.ya_disponibles|fmt }}</div></div></div>
+                <div class="col-6 col-lg-3"><div class="p-2 bg-white rounded border"><div class="text-muted small">🚫 Ya inh.</div><div class="fw-bold">{{ resumen.ya_inhabilitadas|fmt }}</div></div></div>
+              {% endif %}
+            </div>
+
+            {% if resumen.upload_token %}
+              <hr />
+              <form method="post" class="d-flex gap-2 align-items-center flex-wrap">
+                <input type="hidden" name="action" value="upload" />
+                <input type="hidden" name="upload_token" value="{{ resumen.upload_token }}" />
+                <input type="hidden" name="confirm" value="1" />
+                <button class="btn btn-success" type="submit">📋 Cargar este padrón</button>
+                <div class="text-muted small">(Expira en ~15 minutos)</div>
+              </form>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      {% if preview_rows %}
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6">Vista previa</h2>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped">
+              <thead><tr>{% for c in preview_cols %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+              <tbody>
+                {% for r in preview_rows %}
+                  <tr>{% for c in preview_cols %}<td>{{ r[c] }}</td>{% endfor %}</tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-12 col-xl-5">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">🔍 Buscar cédula en el padrón</h2>
+          <form method="post" class="row g-2">
+            <input type="hidden" name="action" value="search" />
+            <div class="col-12">
+              <input class="form-control" name="cedula" placeholder="Ej: 1090123456" />
+            </div>
+            <div class="col-12">
+              <button class="btn btn-outline-primary" type="submit">Consultar</button>
+            </div>
+          </form>
+
+          {% if buscado %}
+            <hr />
+            <div class="fw-semibold mb-2">Cédula {{ buscado.cedula }}</div>
+            <div class="row g-2">
+              <div class="col-12">
+                <div class="p-2 bg-white rounded border">
+                  <div class="text-muted small">📋 En el padrón</div>
+                  {% if buscado.control.existe %}
+                    {% if buscado.control.estado == 'DISPONIBLE' %}
+                      <div class="text-success fw-bold">🟢 DISPONIBLE</div>
+                    {% else %}
+                      <div class="text-danger fw-bold">🔴 INHABILITADA</div>
+                      <div class="text-muted small">{{ buscado.control.fecha_inhabilitacion }}</div>
+                    {% endif %}
+                  {% else %}
+                    <div class="text-warning fw-bold">⚠️ No está en el padrón</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="p-2 bg-white rounded border">
+                  <div class="text-muted small">🗳️ Como votante</div>
+                  {% if buscado.votante.registrado %}
+                    <div class="text-danger fw-bold">🚫 Ya registrada</div>
+                    <div class="small">{{ buscado.votante.nombre }}</div>
+                    <div class="text-muted small">{{ buscado.votante.fecha_registro }}</div>
+                  {% else %}
+                    <div class="text-success fw-bold">✅ No registrada aún</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

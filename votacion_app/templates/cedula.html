@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h3 mb-1">🔍 Consulta de Estado de Cédula</h1>
+  <div class="text-muted mb-3">Consulta control de cédula y si fue registrada como votante.</div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="post" class="row g-2">
+        <div class="col-12 col-lg-6">
+          <label class="form-label">Número de cédula</label>
+          <input class="form-control" name="cedula" maxlength="20" placeholder="Ej: 1090123456" />
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Consultar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if res %}
+    <div class="row g-3">
+      <div class="col-12 col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h2 class="h5">Control de Cédula</h2>
+            {% if res.control.existe %}
+              {% if res.control.estado == 'INHABILITADA' %}
+                <div class="alert alert-danger">🔴 {{ res.control.estado }}</div>
+                <div class="text-muted small">Inhabilitada: {{ res.control.fecha_inhabilitacion }}</div>
+              {% else %}
+                <div class="alert alert-success">🟢 {{ res.control.estado }}</div>
+              {% endif %}
+            {% else %}
+              <div class="alert alert-info">Cédula no registrada en el sistema.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-6">
+        <div class="card">
+          <div class="card-body">
+            <h2 class="h5">Como Votante</h2>
+            {% if res.votante.registrado %}
+              <div class="alert alert-danger">🚫 Ya registrada como votante</div>
+              <div><strong>Nombre:</strong> {{ res.votante.nombre }}</div>
+              <div class="text-muted small"><strong>Fecha:</strong> {{ res.votante.fecha_registro }}</div>
+            {% else %}
+              <div class="alert alert-success">✅ No ha sido registrada como votante.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

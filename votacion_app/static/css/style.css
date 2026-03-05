@@ -1,0 +1,12 @@
+:root{--blue:#1e3a5f;--green:#2d6a4f;--red:#c0392b;--brown:#7f4f24;--bg:#f8f9fa;}
+body{background:var(--bg);}
+.sidebar{background:#f0f2f6;border-right:1px solid #e2e6ea;min-height:100vh;}
+.metric-card{border-radius:10px;padding:14px;color:#fff;text-align:center;margin-bottom:10px;}
+.metric-card .value{font-size:1.8rem;font-weight:800;line-height:1.1;}
+.metric-card .label{font-size:.85rem;opacity:.9;}
+.rank-item{background:#fff;border-radius:8px;border-left:4px solid var(--blue);padding:10px 14px;margin-bottom:8px;}
+.rank-item .name{font-weight:600;font-size:.95rem;}
+.rank-item .count{font-weight:800;color:var(--blue);}
+.progress{height:8px;}
+.table-sm td,.table-sm th{vertical-align:middle;}
+.badge-soft{background:#eef2f7;color:#2b3a55;border:1px solid #dde3ea;}

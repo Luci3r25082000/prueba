@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="d-flex align-items-end justify-content-between mb-2">
+    <div>
+      <h1 class="h3 mb-1">📊 Dashboard Electoral</h1>
+      <div class="text-muted">Consolidación en tiempo real por líder</div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="metric-card" style="background:var(--blue)">
+        <div class="value">{{ sc.total_votantes|fmt }}</div>
+        <div class="label">Total Votantes</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="metric-card" style="background:var(--green)">
+        <div class="value">{{ sc.disponibles|fmt }}</div>
+        <div class="label">Disponibles</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="metric-card" style="background:var(--red)">
+        <div class="value">{{ sc.inhabilitadas|fmt }}</div>
+        <div class="label">Ya Votaron</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="metric-card" style="background:var(--brown)">
+        <div class="value">{{ lideres|length }}</div>
+        <div class="label">Líderes</div>
+      </div>
+    </div>
+  </div>
+
+  {% if sc.total_padron and sc.total_padron > 0 %}
+    <div class="mb-4">
+      <div class="small text-muted mb-1">Cobertura: {{ sc.cobertura_pct }}% — {{ sc.inhabilitadas|fmt }} de {{ sc.total_padron|fmt }}</div>
+      <div class="progress" role="progressbar" aria-label="Cobertura">
+        <div class="progress-bar" style="width: {{ sc.cobertura_pct }}%"></div>
+      </div>
+    </div>
+  {% endif %}
+
+  <h2 class="h5 mb-3">🏆 Ranking de líderes</h2>
+
+  {% if not ranking %}
+    <div class="alert alert-info">No hay líderes registrados.</div>
+  {% else %}
+    {% for l in ranking %}
+      {% set color = 'var(--blue)' if loop.index <= 3 else '#4a7fa5' %}
+      <div class="rank-item" style="border-left-color: {{ color }}">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <div class="name">{{ l.med }} {{ l.nombre }}</div>
+          <div class="count" style="color: {{ color }}">{{ l.total_votantes|fmt }} <span class="text-muted small">({{ '%.1f'|format(l.pct_total) }}%)</span></div>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Progreso">
+          <div class="progress-bar" style="width: {{ '%.1f'|format(l.pct) }}%; background: {{ color }}"></div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

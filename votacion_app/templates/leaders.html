@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h3 mb-1">👥 Gestión de Líderes</h1>
+  <div class="text-muted mb-3">Crear líderes, cambiar estado y ver consolidado.</div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-5">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h2 class="h5">Crear nuevo líder</h2>
+          <form method="post" class="row g-2">
+            <input type="hidden" name="action" value="create" />
+            <div class="col-12">
+              <label class="form-label">Nombre del líder</label>
+              <input class="form-control" name="nombre" placeholder="Ej: Pedro Ramírez" />
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary w-100" type="submit">➕ Crear Líder</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">Cambiar estado</h2>
+          {% if not lideres %}
+            <div class="alert alert-info mb-0">No hay líderes registrados.</div>
+          {% else %}
+          <form method="post" class="row g-2">
+            <input type="hidden" name="action" value="state" />
+            <div class="col-12">
+              <label class="form-label">Seleccionar líder</label>
+              <select class="form-select" name="lider_id">
+                {% for l in lideres %}
+                  <option value="{{ l.id }}">{{ l.nombre }} ({{ l.total_votantes|fmt }} votos) — {{ l.estado }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Nuevo estado</label>
+              <select class="form-select" name="estado">
+                <option value="ACTIVO">ACTIVO</option>
+                <option value="INACTIVO">INACTIVO</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-outline-primary w-100" type="submit">Actualizar</button>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h5 mb-0">Todos los líderes ({{ lideres|length }})</h2>
+          </div>
+          <hr />
+          {% if not lideres %}
+            <div class="alert alert-info mb-0">No hay líderes registrados.</div>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Votantes</th>
+                    <th>Estado</th>
+                    <th>Creación</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for l in lideres %}
+                  <tr>
+                    <td>{{ l.id }}</td>
+                    <td>{{ l.nombre }}</td>
+                    <td><strong>{{ l.total_votantes|fmt }}</strong></td>
+                    <td><span class="badge text-bg-{{ 'success' if l.estado=='ACTIVO' else 'secondary' }}">{{ l.estado }}</span></td>
+                    <td class="text-muted small">{{ l.fecha_creacion }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1 class="h3 mb-1">📥 Carga Masiva de Votantes</h1>
+  <div class="text-muted mb-3">Registra múltiples votantes. Acepta CSV y Excel. Cada fila es una transacción atómica.</div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <div class="fw-semibold">Plantilla CSV</div>
+          <div class="text-muted small">Incluye columnas cédula, nombre y líder.</div>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('download_template') }}">⬇️ Descargar plantilla</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h2 class="h5">1️⃣ Seleccionar archivo</h2>
+      <form method="post" enctype="multipart/form-data" class="row g-2">
+        <div class="col-12">
+          <input class="form-control" type="file" name="archivo" accept=".csv,.xlsx,.xls" required />
+        </div>
+        <div class="col-6 col-lg-3">
+          <label class="form-label">Separador CSV</label>
+          <select class="form-select" name="sep">
+            <option value=",">Coma (,)</option>
+            <option value=";">Punto y coma (;)</option>
+            <option value="|">Pipe (|)</option>
+            <option value="\t">Tabulador</option>
+          </select>
+        </div>
+        <div class="col-6 col-lg-3">
+          <label class="form-label">Codificación</label>
+          <select class="form-select" name="enc">
+            <option value="utf-8">utf-8</option>
+            <option value="utf-8-sig">utf-8-sig</option>
+            <option value="latin-1">latin-1</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="1" id="confirm" name="confirm" />
+            <label class="form-check-label" for="confirm">Confirmo ejecutar la carga (irreversible).</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">🚀 Procesar archivo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if info_fmt %}
+  <div class="row g-3">
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">2️⃣ Vista previa</h2>
+          <div class="text-muted small mb-2">Formato: {{ info_fmt }} · {{ total_filas|fmt }} filas</div>
+          {% if preview_rows %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead>
+                  <tr>
+                    {% for c in preview_cols %}<th>{{ c }}</th>{% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in preview_rows %}
+                  <tr>
+                    {% for c in preview_cols %}<td>{{ r[c] }}</td>{% endfor %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-muted">No hay datos para mostrar.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5">3️⃣ Análisis</h2>
+          {% if cols_detectadas %}
+            <div class="mb-2">
+              <span class="badge text-bg-secondary">cédula: {{ cols_detectadas[0] }}</span>
+              <span class="badge text-bg-secondary">nombre: {{ cols_detectadas[1] }}</span>
+              <span class="badge text-bg-secondary">líder: {{ cols_detectadas[2] }}</span>
+              {% if col_src %}<span class="badge text-bg-info">Source: {{ col_src }}</span>{% endif %}
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-4"><div class="p-2 bg-white rounded border"><div class="text-muted small">Líderes existentes</div><div class="fw-bold">{{ existentes|length }}</div></div></div>
+              <div class="col-4"><div class="p-2 bg-white rounded border"><div class="text-muted small">Líderes nuevos</div><div class="fw-bold">{{ nuevos|length }}</div></div></div>
+              <div class="col-4"><div class="p-2 bg-white rounded border"><div class="text-muted small">Filas</div><div class="fw-bold">{{ total_filas|fmt }}</div></div></div>
+            </div>
+
+            {% if nuevos %}
+              <div class="alert alert-warning">Se crearán automáticamente {{ nuevos|length }} líderes nuevos al ejecutar.</div>
+              <div class="small text-muted">Nuevos: {{ nuevos|join(', ') }}</div>
+            {% endif %}
+          {% endif %}
+
+          {% if upload_token %}
+            <hr />
+            <form method="post" class="d-flex gap-2 align-items-center flex-wrap">
+              <input type="hidden" name="upload_token" value="{{ upload_token }}" />
+              <input type="hidden" name="confirm" value="1" />
+              <button class="btn btn-success" type="submit">🚀 Ejecutar con esta vista previa</button>
+              <div class="text-muted small">(Expira en ~15 minutos)</div>
+            </form>
+          {% endif %}
+
+          {% if ok_rows or err_rows %}
+            <hr />
+            <div class="d-flex gap-2 flex-wrap">
+              <span class="badge text-bg-success">✅ Exitosos: {{ ok_rows|length }}</span>
+              <span class="badge text-bg-danger">❌ Errores: {{ err_rows|length }}</span>
+              {% if export_ok %}<a class="btn btn-sm btn-outline-success" href="{{ url_for('download_export', token=export_ok) }}">⬇️ Exportar exitosos</a>{% endif %}
+              {% if export_err %}<a class="btn btn-sm btn-outline-danger" href="{{ url_for('download_export', token=export_err) }}">⬇️ Exportar errores</a>{% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if ok_rows or err_rows %}
+  <div class="row g-3 mt-0">
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6">✅ Exitosos</h2>
+          {% if not ok_rows %}
+            <div class="text-muted">Ningún registro exitoso.</div>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead><tr><th>Fila</th><th>Cédula</th><th>Nombre</th><th>Líder</th></tr></thead>
+                <tbody>
+                  {% for r in ok_rows %}
+                    <tr><td>{{ r.fila }}</td><td>{{ r.cedula }}</td><td>{{ r.nombre }}</td><td>{{ r.lider }}</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6">❌ Errores</h2>
+          {% if not err_rows %}
+            <div class="text-muted">Sin errores.</div>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-sm table-striped">
+                <thead><tr><th>Fila</th><th>Cédula</th><th>Nombre</th><th>Líder</th><th>Error</th></tr></thead>
+                <tbody>
+                  {% for r in err_rows %}
+                    <tr><td>{{ r.fila }}</td><td>{{ r.cedula }}</td><td>{{ r.nombre }}</td><td>{{ r.lider }}</td><td class="text-danger">{{ r.error }}</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+{% endblock %}
