@@ -1,0 +1,7 @@
+{
+  "builds": [{ "src": "votacion_app/api/index.py", "use": "@vercel/python" }],
+  "routes": [
+    { "src": "/static/(.*)", "dest": "votacion_app/static/$1" },
+    { "src": "/(.*)", "dest": "votacion_app/api/index.py" }
+  ]
+}
