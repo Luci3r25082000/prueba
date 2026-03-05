@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
 import sys
 
@@ -24,6 +25,4 @@ if app is None:
     raise AttributeError("El entrypoint Flask no expone 'app'.")
 
 if __name__ == "__main__":
-    import os
-
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=True)
