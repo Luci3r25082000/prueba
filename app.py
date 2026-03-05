@@ -19,8 +19,13 @@ module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 
-app = module.app
-create_app = module.create_app
+app = getattr(module, "app", None)
+if app is None:
+    raise AttributeError("El entrypoint Flask no expone 'app'.")
+
+create_app = getattr(module, "create_app", None)
+if create_app is None:
+    raise AttributeError("El entrypoint Flask no expone 'create_app'.")
 
 if __name__ == "__main__":
     import os
