@@ -13,7 +13,7 @@ if str(APP_DIR) not in sys.path:
 
 if not APP_PATH.exists():
     raise FileNotFoundError(
-        f"Entrypoint Flask no encontrado en {APP_PATH}. Asegúrese de que votacion_app/app.py existe."
+        f"Entrypoint Flask no encontrado en {APP_PATH}. Asegúrese de que exista votacion_app/app.py."
     )
 
 spec = importlib.util.spec_from_file_location("votacion_app_app", APP_PATH)
