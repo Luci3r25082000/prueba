@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib.util
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 APP_DIR = BASE_DIR / "votacion_app"
