@@ -2,6 +2,7 @@
 Modelos de base de datos - Sistema de Registro Electoral
 """
 import os
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 from datetime import datetime
 from sqlalchemy import (
     create_engine, Column, Integer, String, DateTime,
@@ -83,13 +84,54 @@ def _resolve_database_url() -> str:
         return "sqlite+pysqlite:///:memory:"
     env_url = os.getenv("DATABASE_URL")
     if env_url:
-        return env_url
+        return _normalize_database_url(env_url)
 
     # Vercel tiene filesystem efímero; /tmp es el lugar permitido para escritura.
     if os.getenv("VERCEL") == "1" or os.getenv("NOW_REGION"):
         return "sqlite+pysqlite:////tmp/votacion.db"
 
     return "sqlite+pysqlite:///./votacion.db"
+
+
+def _normalize_database_url(url: str) -> str:
+    """Normaliza DATABASE_URL para SQLAlchemy.
+
+    - Convierte `postgres://` -> `postgresql://`.
+    - Fuerza el driver `psycopg` (psycopg3) cuando el esquema es `postgresql`.
+    - En Supabase, agrega `sslmode=require` si no está presente.
+    """
+    raw = (url or "").strip()
+    if not raw:
+        return raw
+
+    parsed = urlparse(raw)
+    scheme = (parsed.scheme or "").lower()
+
+    # Soporta `postgres://...` además de `postgresql://...`
+    if scheme == "postgres":
+        parsed = parsed._replace(scheme="postgresql")
+        scheme = "postgresql"
+
+    # SQLAlchemy por defecto usa psycopg2 si no se especifica driver.
+    # En Vercel instalamos psycopg3, así que forzamos `+psycopg`.
+    if scheme == "postgresql":
+        parsed = parsed._replace(scheme="postgresql+psycopg")
+        scheme = "postgresql+psycopg"
+
+    # Si alguien pega una URL con psycopg2, la reescribimos a psycopg3.
+    if scheme.startswith("postgresql+psycopg2"):
+        parsed = parsed._replace(scheme="postgresql+psycopg")
+        scheme = "postgresql+psycopg"
+
+    host = (parsed.hostname or "").lower()
+    is_supabase = ("supabase.co" in host) or ("supabase.com" in host)
+
+    if is_supabase:
+        query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+        query.setdefault("sslmode", "require")
+        parsed = parsed._replace(query=urlencode(query))
+
+    return urlunparse(parsed)
 
 
 DATABASE_URL = _resolve_database_url()
