@@ -126,11 +126,9 @@ def test_consolidado():
 
 
 def _find_root_app_path() -> Path:
-    for parent in Path(__file__).resolve().parents:
-        if (parent / ".git").exists():
-            root_path = parent / "app.py"
-            if root_path.exists():
-                return root_path
+    root_path = Path(__file__).resolve().parents[2] / "app.py"
+    if root_path.exists():
+        return root_path
     raise FileNotFoundError("No se encontró el entrypoint raíz.")
 
 
