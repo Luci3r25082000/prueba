@@ -23,10 +23,6 @@ app = getattr(module, "app", None)
 if app is None:
     raise AttributeError("El entrypoint Flask no expone 'app'.")
 
-create_app = getattr(module, "create_app", None)
-if create_app is None:
-    raise AttributeError("El entrypoint Flask no expone 'create_app'.")
-
 if __name__ == "__main__":
     import os
 
