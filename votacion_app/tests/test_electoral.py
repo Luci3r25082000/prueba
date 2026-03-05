@@ -125,16 +125,11 @@ def test_consolidado():
         print(f"   {g['lider_nombre']}: {g['total_votantes']} votantes")
 
 
-def _find_root_app_path() -> Path:
-    root_path = Path(__file__).resolve().parents[2] / "app.py"
-    if root_path.exists():
-        return root_path
-    raise FileNotFoundError("No se encontró el entrypoint raíz.")
-
-
 def test_root_entrypoint():
     separador("TEST 9: Entrypoint Flask raíz")
-    root_app_path = _find_root_app_path()
+    root_app_path = Path(__file__).resolve().parents[2] / "app.py"
+    if not root_app_path.exists():
+        raise FileNotFoundError("No se encontró el entrypoint raíz.")
     spec = importlib.util.spec_from_file_location("test_root_app", root_app_path)
     assert spec and spec.loader, "No se pudo cargar el entrypoint raíz"
     module = importlib.util.module_from_spec(spec)

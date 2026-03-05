@@ -11,9 +11,12 @@ APP_PATH = APP_DIR / "app.py"
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
+if not APP_PATH.exists():
+    raise FileNotFoundError(f"Entrypoint Flask no encontrado en {APP_PATH}")
+
 spec = importlib.util.spec_from_file_location("votacion_app_app", APP_PATH)
 if spec is None or spec.loader is None:
-    raise ImportError(f"No se pudo cargar el entrypoint Flask en {APP_PATH}")
+    raise ImportError(f"No se pudo cargar el entrypoint Flask en {APP_PATH} (spec inválido)")
 
 module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
