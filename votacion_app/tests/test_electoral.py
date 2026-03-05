@@ -4,6 +4,8 @@ Ejecutar: python tests/test_electoral.py
 """
 import sys
 import os
+import importlib.util
+from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -122,6 +124,18 @@ def test_consolidado():
         print(f"   {g['lider_nombre']}: {g['total_votantes']} votantes")
 
 
+def test_root_entrypoint():
+    separador("TEST 9: Entrypoint Flask raíz")
+    root_app_path = Path(__file__).resolve().parents[2] / "app.py"
+    spec = importlib.util.spec_from_file_location("root_app", root_app_path)
+    assert spec and spec.loader, "No se pudo cargar el entrypoint raíz"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    from flask import Flask
+    assert isinstance(module.app, Flask), "El entrypoint raíz no expone una app Flask"
+    print("✅ Entrypoint raíz carga app Flask correctamente")
+
+
 if __name__ == "__main__":
     print("\n🗳️  SUITE DE PRUEBAS — Sistema Electoral")
     print("=" * 60)
@@ -135,6 +149,7 @@ if __name__ == "__main__":
         test_cedula_dada_de_baja,
         test_lider_inexistente,
         test_consolidado,
+        test_root_entrypoint,
     ]
 
     passed = 0
